@@ -1,6 +1,6 @@
 # install.ps1 — Instalador para Windows
 
-$repo = "https://raw.githubusercontent.com/TU_USUARIO/opencode-pocketbase-agent/main"
+$repo = "https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main"
 $agentsDir = "$env:USERPROFILE\.config\opencode\agents"
 
 Write-Host "Instalando pocketbase-backend agent para OpenCode..."

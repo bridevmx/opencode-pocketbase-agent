@@ -18,19 +18,19 @@ skills/
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/TU_USUARIO/opencode-pocketbase-agent/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main/install.ps1 | iex
 ```
 
 **Linux / macOS (bash):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TU_USUARIO/opencode-pocketbase-agent/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main/install.sh | bash
 ```
 
 ### Opción B — Manual
 
 1. Clona el repo:
 ```bash
-git clone https://github.com/TU_USUARIO/opencode-pocketbase-agent.git
+git clone https://github.com/bridevmx/opencode-pocketbase-agent.git
 ```
 
 2. Copia el agente a tu carpeta global de OpenCode:
@@ -56,7 +56,7 @@ Si solo quieres la skill (cargada bajo demanda), agrega esto a tu `opencode.json
   "$schema": "https://opencode.ai/config.json",
   "skills": {
     "urls": [
-      "https://raw.githubusercontent.com/TU_USUARIO/opencode-pocketbase-agent/main/.well-known/skills/"
+      "https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main/.well-known/skills/"
     ]
   }
 }

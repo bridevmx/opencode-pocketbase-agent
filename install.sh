@@ -3,7 +3,7 @@
 
 set -e
 
-REPO="https://raw.githubusercontent.com/TU_USUARIO/opencode-pocketbase-agent/main"
+REPO="https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main"
 AGENTS_DIR="$HOME/.config/opencode/agents"
 
 echo "Instalando pocketbase-backend agent para OpenCode..."
