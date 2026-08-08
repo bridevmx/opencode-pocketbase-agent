@@ -3,7 +3,7 @@
 $repo = "https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main"
 $agentsDir = "$env:USERPROFILE\.config\opencode\agents"
 
-Write-Host "Instalando pocketbase-backend agent para OpenCode..."
+Write-Host "Instalando agentes para OpenCode..."
 
 # Crear directorio si no existe
 if (-not (Test-Path $agentsDir)) {
@@ -11,17 +11,23 @@ if (-not (Test-Path $agentsDir)) {
     Write-Host "  Creado: $agentsDir"
 }
 
-# Descargar el agente
-$agentUrl = "$repo/agents/pocketbase-backend.md"
-$agentDest = "$agentsDir\pocketbase-backend.md"
+# Agentes a instalar
+$agents = @(
+    "pocketbase-backend",
+    "sveltekit-frontend"
+)
 
-try {
-    Invoke-WebRequest -Uri $agentUrl -OutFile $agentDest -UseBasicParsing
-    Write-Host "  Instalado: $agentDest"
-} catch {
-    Write-Error "Error descargando el agente: $_"
-    exit 1
+foreach ($agent in $agents) {
+    $url = "$repo/agents/$agent.md"
+    $dest = "$agentsDir\$agent.md"
+    try {
+        Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
+        Write-Host "  Instalado: $dest"
+    } catch {
+        Write-Error "Error descargando $agent`: $_"
+        exit 1
+    }
 }
 
 Write-Host ""
-Write-Host "Listo. Reinicia OpenCode y usa @pocketbase-backend en tus sesiones."
+Write-Host "Listo. Reinicia OpenCode y usa @pocketbase-backend o @sveltekit-frontend en tus sesiones."

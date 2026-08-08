@@ -6,12 +6,16 @@ set -e
 REPO="https://raw.githubusercontent.com/bridevmx/opencode-pocketbase-agent/main"
 AGENTS_DIR="$HOME/.config/opencode/agents"
 
-echo "Instalando pocketbase-backend agent para OpenCode..."
+echo "Instalando agentes para OpenCode..."
 
 mkdir -p "$AGENTS_DIR"
 
-curl -fsSL "$REPO/agents/pocketbase-backend.md" -o "$AGENTS_DIR/pocketbase-backend.md"
+AGENTS=("pocketbase-backend" "sveltekit-frontend")
 
-echo "  Instalado: $AGENTS_DIR/pocketbase-backend.md"
+for agent in "${AGENTS[@]}"; do
+  curl -fsSL "$REPO/agents/$agent.md" -o "$AGENTS_DIR/$agent.md"
+  echo "  Instalado: $AGENTS_DIR/$agent.md"
+done
+
 echo ""
-echo "Listo. Reinicia OpenCode y usa @pocketbase-backend en tus sesiones."
+echo "Listo. Reinicia OpenCode y usa @pocketbase-backend o @sveltekit-frontend en tus sesiones."
