@@ -614,11 +614,147 @@ await pb.collection('posts').getList(1, 20, { signal: controller.signal })
 
 ---
 
-### Auth guard universal — authRefresh antes de renderizar
+### Auth guard universal — authRefresh + onChange
 
 **Regla fija:** antes de mostrar cualquier contenido protegido, verificar `pb.authStore.isValid`
-y llamar `pb.collection('nombreColeccion').authRefresh()`. Este es el único mecanismo de guard en la SPA.
+y llamar `pb.collection('nombreColeccion').authRefresh()`. Este es el guard activo al montar.
 La colección debe especificarse siempre — no existe un `authRefresh` global en el SDK.
+
+**`pb.authStore.onChange`** complementa al guard pero no lo reemplaza:
+
+| | `authRefresh()` | `onChange()` |
+| :-- | :-- | :-- |
+| Cuándo actúa | Al montar la página | En cambios posteriores al authStore |
+| Verifica con el servidor | Sí | No (solo reacciona a cambios locales) |
+| Token expirado al abrir | Lo detecta y redirige | No se dispara (no hay cambio) |
+| Logout desde otro componente | No lo detecta | Sí, se dispara con `clear()` |
+| `authRefresh` exitoso | Lo ejecuta | Se dispara (internamente llama `save()`) |
+
+Usar **ambos juntos**: `authRefresh` para la carga inicial, `onChange` para reaccionar a cambios en tiempo real.
+
+**Firma de `onChange`:**
+```js
+// Devuelve una función de unsubscribe
+const unsubscribe = pb.authStore.onChange((token, record) => {
+  // token: string (vacío si se limpió)
+  // record: RecordModel | null
+}, /* fireImmediately = false */)
+
+// Para desregistrar:
+unsubscribe()
+```
+
+#### Patrón combinado recomendado en client.js
+
+```js
+// src/lib/pb/client.js
+import PocketBase from 'pocketbase'
+
+const pb = new PocketBase(import.meta.env.VITE_PB_URL)
+
+pb.autoCancellation(false)
+
+export default pb
+```
+
+#### Helper de guard con authRefresh + onChange
+
+```js
+// src/lib/auth/guard.js
+import pb from '$lib/pb/client.js'
+import { goto } from '$app/navigation'
+
+/**
+ * Guard activo: verifica y refresca el token con el servidor al montar.
+ * Retorna unsubscribe de onChange para limpiar en onDestroy.
+ *
+ * @param {string} collection - nombre de la colección auth (ej: 'users')
+ * @param {string} redirectTo - ruta a redirigir si no autenticado
+ * @returns {Promise<{ ready: boolean, unsubscribe: () => void }>}
+ */
+export async function setupAuthGuard(collection = 'users', redirectTo = '/login') {
+  // 1. Guard activo al montar: verifica con el servidor
+  if (!pb.authStore.isValid) {
+    goto(redirectTo)
+    return { ready: false, unsubscribe: () => {} }
+  }
+
+  try {
+    await pb.collection(collection).authRefresh()
+  } catch {
+    pb.authStore.clear()
+    goto(redirectTo)
+    return { ready: false, unsubscribe: () => {} }
+  }
+
+  // 2. Listener reactivo: redirige si el authStore se limpia posteriormente
+  const unsubscribe = pb.authStore.onChange((token, record) => {
+    if (!token || !record) {
+      goto(redirectTo)
+    }
+  })
+
+  return { ready: true, unsubscribe }
+}
+```
+
+#### Uso en página protegida
+
+```svelte
+<!-- src/routes/(app)/dashboard/+page.svelte -->
+<script>
+  import { onMount, onDestroy } from 'svelte'
+  import { setupAuthGuard } from '$lib/auth/guard.js'
+
+  let ready = $state(false)
+  let unsubscribeAuth = () => {}
+
+  onMount(async () => {
+    const result = await setupAuthGuard('users')
+    ready = result.ready
+    unsubscribeAuth = result.unsubscribe
+  })
+
+  onDestroy(() => {
+    unsubscribeAuth()
+  })
+</script>
+
+{#if ready}
+  <!-- contenido protegido -->
+{:else}
+  <div class="flex items-center justify-center min-h-screen">
+    <span class="loading loading-spinner loading-lg text-primary" aria-label="Verificando sesión"></span>
+  </div>
+{/if}
+```
+
+#### Uso de onChange standalone (sin guard, para reactividad global)
+
+Si se necesita solo sincronizar estado reactivo con el authStore (ej: en el layout raíz):
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script>
+  import { onMount, onDestroy } from 'svelte'
+  import pb from '$lib/pb/client.js'
+
+  let user = $state(pb.authStore.record)
+
+  let unsubscribe = () => {}
+
+  onMount(() => {
+    // fireImmediately=true sincroniza el estado inmediatamente al montar
+    unsubscribe = pb.authStore.onChange((token, record) => {
+      user = record
+    }, true)
+  })
+
+  onDestroy(() => {
+    unsubscribe()
+  })
+</script>
+```
 
 #### Helper reutilizable
 
@@ -806,7 +942,9 @@ Nunca:
 4. `pb.autoCancellation(false)` omitido en `client.js`
 5. Contenido protegido sin `pb.collection(...).authRefresh()` previo
 6. `authRefresh()` llamado sin especificar la colección
-7. Guard de auth ad-hoc en lugar del helper `requireAuth()`
+7. Guard de auth ad-hoc en lugar del helper `setupAuthGuard()`
+8. `onChange` registrado sin llamar `unsubscribe()` en `onDestroy` (memory leak)
+9. Usar `onChange` como único guard (no detecta token expirado al abrir la app)
 8. Concatenar user input en filtros PocketBase
 9. Mutar estado dentro de `$derived`
 10. `$effect` para computar valores (usar `$derived`)
@@ -867,10 +1005,12 @@ Al recibir un handoff del agente PocketBase:
 
 - [ ] `pb.autoCancellation(false)` presente en `src/lib/pb/client.js`
 - [ ] `pb.authStore.isValid` verificado antes de `authRefresh()`
-- [ ] `pb.collection('nombreColeccion').authRefresh()` llamado antes de renderizar (con colección explícita)
+- [ ] `pb.collection('nombreColeccion').authRefresh()` llamado al montar (con colección explícita)
+- [ ] `pb.authStore.onChange` registrado para reaccionar a cambios posteriores
+- [ ] `unsubscribe()` de `onChange` llamado en `onDestroy` (sin memory leaks)
 - [ ] `pb.authStore.clear()` en logout
-- [ ] `goto('/login')` tras fallo de `authRefresh`
-- [ ] Helper `requireAuth()` usado en lugar de lógica ad-hoc
+- [ ] `goto('/login')` tras fallo de `authRefresh` o cuando `onChange` detecta token vacío
+- [ ] Helper `setupAuthGuard()` usado en lugar de lógica ad-hoc
 
 ### Code review SDK
 
