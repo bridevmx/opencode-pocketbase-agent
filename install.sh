@@ -10,18 +10,14 @@ echo "Instalando agentes para OpenCode..."
 
 mkdir -p "$AGENTS_DIR"
 
-declare -A AGENTS=(
-  ["pocketbase-backend"]="pocketbase-backend"
-  ["front-dev"]="front-dev"
-)
+AGENTS=("back-dev" "front-dev" "web-search")
 
-for repo_name in "${!AGENTS[@]}"; do
-  local_name="${AGENTS[$repo_name]}"
-  local_dir="$AGENTS_DIR/$local_name"
+for agent in "${AGENTS[@]}"; do
+  local_dir="$AGENTS_DIR/$agent"
   mkdir -p "$local_dir"
-  curl -fsSL "$REPO/agents/$repo_name/agent.md" -o "$local_dir/agent.md"
+  curl -fsSL "$REPO/agents/$agent/agent.md" -o "$local_dir/agent.md"
   echo "  Instalado: $local_dir/agent.md"
 done
 
 echo ""
-echo "Listo. Reinicia OpenCode y usa @pocketbase-backend o @front-dev en tus sesiones."
+echo "Listo. Reinicia OpenCode y usa @back-dev, @front-dev o @web-search en tus sesiones."
