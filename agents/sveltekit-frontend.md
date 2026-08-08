@@ -534,7 +534,6 @@ import pb from '$lib/pb/client.js'
 export const load = async ({ params }) => {
   const post = await pb.collection('posts').getOne(params.slug, {
     expand: 'author',
-    requestKey: null,
   })
   return { post }
 }
@@ -562,7 +561,7 @@ export const load = async ({ url }) => {
     redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`)
   }
   try {
-    await pb.collection('users').authRefresh({ requestKey: null })
+    await pb.collection('users').authRefresh()
   } catch {
     pb.authStore.clear()
     redirect(303, `/login?redirect=${encodeURIComponent(url.pathname)}`)
@@ -583,56 +582,33 @@ import PocketBase from 'pocketbase'
 
 const pb = new PocketBase(import.meta.env.VITE_PB_URL)
 
+// Desactivar auto-cancelación globalmente — obligatorio en SPA
+// Evita cancelaciones inesperadas al navegar rápido o con múltiples suscriptores
+pb.autoCancellation(false)
+
 export default pb
 ```
 
 **NUNCA** crear múltiples instancias. Un singleton por aplicación.
-
----
-
-### Regla absoluta: `{ requestKey: null }` en todas las llamadas
-
-PocketBase SDK cancela automáticamente requests duplicados por defecto. En una SPA esto provoca
-cancelaciones inesperadas al navegar rápido o con múltiples suscriptores.
-
-**Siempre** pasar `{ requestKey: null }` en **cada** llamada al SDK:
+`pb.autoCancellation(false)` se llama **una sola vez** al crear la instancia. No se pasa nada extra en cada llamada al SDK.
 
 ```js
-// BIEN
-await pb.collection('posts').getList(1, 20, {
-  sort: '-created',
-  requestKey: null,  // obligatorio siempre
-})
-
-await pb.collection('posts').getOne(id, {
-  expand: 'author',
-  requestKey: null,
-})
-
-await pb.collection('posts').create(data, {
-  requestKey: null,
-})
-
-await pb.collection('posts').update(id, data, {
-  requestKey: null,
-})
-
-await pb.collection('posts').delete(id, {
-  requestKey: null,
-})
-
-// MAL — puede cancelar el request si se llama dos veces seguidas
+// BIEN — sin requestKey, autoCancellation ya está desactivado globalmente
 await pb.collection('posts').getList(1, 20, { sort: '-created' })
+await pb.collection('posts').getOne(id, { expand: 'author' })
+await pb.collection('posts').create(data)
+await pb.collection('posts').update(id, data)
+await pb.collection('posts').delete(id)
+
+// MAL — requestKey: null es redundante si ya se usó pb.autoCancellation(false)
+await pb.collection('posts').getList(1, 20, { requestKey: null })
 ```
 
-Si se necesita cancelación controlada, usar `AbortController`:
+Si se necesita cancelación controlada para un request específico, usar `AbortController`:
 
 ```js
 const controller = new AbortController()
-await pb.collection('posts').getList(1, 20, {
-  requestKey: null,
-  signal: controller.signal,
-})
+await pb.collection('posts').getList(1, 20, { signal: controller.signal })
 // controller.abort() para cancelar manualmente
 ```
 
@@ -641,7 +617,8 @@ await pb.collection('posts').getList(1, 20, {
 ### Auth guard universal — authRefresh antes de renderizar
 
 **Regla fija:** antes de mostrar cualquier contenido protegido, verificar `pb.authStore.isValid`
-y llamar `authRefresh()`. Este es el único mecanismo de guard en la SPA.
+y llamar `pb.collection('nombreColeccion').authRefresh()`. Este es el único mecanismo de guard en la SPA.
+La colección debe especificarse siempre — no existe un `authRefresh` global en el SDK.
 
 #### Helper reutilizable
 
@@ -661,7 +638,7 @@ export async function requireAuth(redirectTo = '/login') {
     return false
   }
   try {
-    await pb.collection('users').authRefresh({ requestKey: null })
+    await pb.collection('users').authRefresh()
     return true
   } catch {
     pb.authStore.clear()
@@ -707,9 +684,7 @@ import pb from '$lib/pb/client.js'
 import { goto } from '$app/navigation'
 
 export async function login(email, password) {
-  await pb.collection('users').authWithPassword(email, password, {
-    requestKey: null,
-  })
+  await pb.collection('users').authWithPassword(email, password)
   goto('/dashboard')
 }
 
@@ -719,10 +694,8 @@ export async function logout() {
 }
 
 export async function register(data) {
-  await pb.collection('users').create(data, { requestKey: null })
-  await pb.collection('users').authWithPassword(data.email, data.password, {
-    requestKey: null,
-  })
+  await pb.collection('users').create(data)
+  await pb.collection('users').authWithPassword(data.email, data.password)
   goto('/dashboard')
 }
 ```
@@ -732,7 +705,7 @@ export async function register(data) {
 ### Paginación y filtros
 
 ```js
-// Siempre requestKey: null + pb.filter() para evitar inyección
+// pb.filter() evita inyección — nunca concatenar strings de usuario
 const result = await pb.collection('posts').getList(1, 20, {
   filter: pb.filter('status = {:status} && author = {:author}', {
     status: 'published',
@@ -741,7 +714,6 @@ const result = await pb.collection('posts').getList(1, 20, {
   sort: '-created',
   expand: 'author,tags',
   fields: 'id,title,created,expand.author.name',
-  requestKey: null,
 })
 ```
 
@@ -778,7 +750,7 @@ const result = await pb.collection('posts').getList(1, 20, {
 import { ClientResponseError } from 'pocketbase'
 
 try {
-  await pb.collection('posts').create(data, { requestKey: null })
+  await pb.collection('posts').create(data)
 } catch (err) {
   if (err instanceof ClientResponseError) {
     // err.status: 400 | 401 | 403 | 404
@@ -798,7 +770,7 @@ Nunca:
 - Usar `$:` reactive declarations en Svelte 5 (usar `$derived` o `$effect`)
 - Crear archivos `.server.js` (SPA estática, sin servidor)
 - Crear múltiples instancias de PocketBase en el cliente
-- Omitir `requestKey: null` en cualquier llamada al SDK de PocketBase
+- Omitir `pb.autoCancellation(false)` al crear la instancia de PocketBase
 - Renderizar contenido protegido sin `authRefresh()` previo
 - Concatenar input de usuario en filtros de PocketBase (usar `pb.filter()`)
 - CSS en línea (`style="..."`), clases ad-hoc fuera de Tailwind/DaisyUI
@@ -831,13 +803,14 @@ Nunca:
 1. Cualquier archivo `.ts` o `lang="ts"` en componente
 2. `export let` en Svelte 5
 3. `$:` reactive statements
-4. Llamada al SDK sin `requestKey: null`
-5. Contenido protegido sin `authRefresh()` previo
-6. Guard de auth ad-hoc en lugar del helper `requireAuth()`
-7. Concatenar user input en filtros PocketBase
-8. Mutar estado dentro de `$derived`
-9. `$effect` para computar valores (usar `$derived`)
-10. `pb.authStore.clear()` omitido en logout
+4. `pb.autoCancellation(false)` omitido en `client.js`
+5. Contenido protegido sin `pb.collection(...).authRefresh()` previo
+6. `authRefresh()` llamado sin especificar la colección
+7. Guard de auth ad-hoc en lugar del helper `requireAuth()`
+8. Concatenar user input en filtros PocketBase
+9. Mutar estado dentro de `$derived`
+10. `$effect` para computar valores (usar `$derived`)
+11. `pb.authStore.clear()` omitido en logout
 11. CSS en línea o clases fuera de Tailwind/DaisyUI
 12. `<input>` sin label accesible
 13. UI duplicada en lugar de componente reutilizable
@@ -880,8 +853,8 @@ Al recibir un handoff del agente PocketBase:
 - [ ] Usa `$props()` (no `export let`)
 - [ ] Usa `$state` / `$derived` / `$effect` (no `$:`)
 - [ ] `$effect` tiene cleanup si suscribe a realtime
-- [ ] Todas las llamadas al SDK tienen `requestKey: null`
-- [ ] Contenido protegido tiene `authRefresh()` antes de renderizar
+- [ ] Todas las llamadas al SDK sin `requestKey` — `autoCancellation(false)` ya lo cubre
+- [ ] Contenido protegido tiene `pb.collection(...).authRefresh()` antes de renderizar
 - [ ] Estilos solo con Tailwind v4 + DaisyUI (sin CSS en línea)
 - [ ] HTML semántico: landmarks, roles, labels
 - [ ] Cada `<input>` tiene `<label for>` o `aria-label`
@@ -892,15 +865,16 @@ Al recibir un handoff del agente PocketBase:
 
 ### Code review auth
 
+- [ ] `pb.autoCancellation(false)` presente en `src/lib/pb/client.js`
 - [ ] `pb.authStore.isValid` verificado antes de `authRefresh()`
-- [ ] `authRefresh({ requestKey: null })` llamado antes de renderizar
+- [ ] `pb.collection('nombreColeccion').authRefresh()` llamado antes de renderizar (con colección explícita)
 - [ ] `pb.authStore.clear()` en logout
 - [ ] `goto('/login')` tras fallo de `authRefresh`
 - [ ] Helper `requireAuth()` usado en lugar de lógica ad-hoc
 
 ### Code review SDK
 
-- [ ] `requestKey: null` en todas las llamadas (getList, getOne, create, update, delete)
+- [ ] `pb.autoCancellation(false)` en `client.js` (no `requestKey` en cada llamada)
 - [ ] Filtros con `pb.filter()`, nunca concatenación de strings
 - [ ] `ClientResponseError` capturado y manejado
 - [ ] Suscripciones realtime tienen cleanup en `$effect` return
