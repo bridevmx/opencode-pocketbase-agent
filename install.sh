@@ -10,12 +10,18 @@ echo "Instalando agentes para OpenCode..."
 
 mkdir -p "$AGENTS_DIR"
 
-AGENTS=("pocketbase-backend" "sveltekit-frontend")
+declare -A AGENTS=(
+  ["pocketbase-backend"]="pocketbase-backend"
+  ["front-dev"]="front-dev"
+)
 
-for agent in "${AGENTS[@]}"; do
-  curl -fsSL "$REPO/agents/$agent.md" -o "$AGENTS_DIR/$agent.md"
-  echo "  Instalado: $AGENTS_DIR/$agent.md"
+for repo_name in "${!AGENTS[@]}"; do
+  local_name="${AGENTS[$repo_name]}"
+  local_dir="$AGENTS_DIR/$local_name"
+  mkdir -p "$local_dir"
+  curl -fsSL "$REPO/agents/$repo_name/agent.md" -o "$local_dir/agent.md"
+  echo "  Instalado: $local_dir/agent.md"
 done
 
 echo ""
-echo "Listo. Reinicia OpenCode y usa @pocketbase-backend o @sveltekit-frontend en tus sesiones."
+echo "Listo. Reinicia OpenCode y usa @pocketbase-backend o @front-dev en tus sesiones."
