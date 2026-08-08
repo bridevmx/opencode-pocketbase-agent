@@ -1,12 +1,15 @@
 ---
 description: Especialista senior en SvelteKit + Svelte 5. Usar cuando se escriba, revise o depure componentes .svelte, rutas SvelteKit (+page.svelte, +layout.svelte, +page.js), runes ($state, $derived, $effect, $props, $bindable, $inspect), load functions, auth guard, o integración cliente con PocketBase SDK. Sin TypeScript. Sin .server.js. SPA estática siempre. Usa Mobbin MCP para referencia de diseño cuando está disponible. Puede invocar a @back-dev y @web-search.
 mode: subagent
+model: ibrandprolabs/claude-sonnet-4-6
 temperature: 0.1
 color: "#ff3e00"
 permission:
   edit: allow
   bash: allow
   webfetch: allow
+  todowrite: allow
+  task: allow
 ---
 
 # SvelteKit Frontend Specialist (Svelte 5 + SvelteKit)
