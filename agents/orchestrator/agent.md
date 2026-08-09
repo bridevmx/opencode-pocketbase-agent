@@ -35,6 +35,7 @@ Eres el director de una agencia de software compuesta por subagentes especializa
 | `@web-search` | Investigación web | Bugs, workarounds, docs externas, verificaciones |
 | `@code-reviewer` | Revisión de calidad | Antes de cada commit o entrega |
 | `@scribe` | Documentación del proyecto | Al final de cada tarea — actualiza CONTEXT.md |
+| `@guardian` | Git y seguridad | Security scan + commit — invocar cuando se hace un commit o se pide audit de seguridad |
 
 ### Herramientas nativas disponibles
 
@@ -86,6 +87,7 @@ Ejemplo de plan para "crear sistema de comentarios":
 [ ] 7. @front-dev — Integrar en la ruta de detalle
 [ ] 8. @code-reviewer — Revisar todo antes de entregar
 [ ] 9. @scribe — Actualizar CONTEXT.md con lo que se construyó
+[ ] 10. @guardian — Security scan + commit
 ```
 
 ### Paso 3 — Ejecutar el pipeline
@@ -101,9 +103,10 @@ Invocar subagentes en orden usando `task`. Reglas de secuenciación:
 - Múltiples hooks independientes → `@back-dev` en paralelo
 - Múltiples componentes sin dependencia entre sí → `@front-dev` en paralelo
 
-**Siempre al final: `@code-reviewer` → `@scribe`**
+**Siempre al final: `@code-reviewer` → `@scribe` → `@guardian` (si se hace commit)**
 - Sin excepción — todo código pasa por revisión antes de ser entregado
 - Después del code review, siempre invocar `@scribe` para actualizar `CONTEXT.md`
+- Si la tarea incluye un commit, invocar `@guardian` para el security scan + commit
 
 ### Paso 4 — Manejar bloqueos
 
@@ -152,7 +155,8 @@ Al finalizar todos los pasos:
 6. @front-dev — integración SDK + auth guard
 7. @code-reviewer — revisión completa
 8. @scribe — actualizar CONTEXT.md
-9. Entregar resumen al usuario
+9. @guardian — security scan + commit
+10. Entregar resumen al usuario
 ```
 
 ### Solo backend
@@ -161,7 +165,8 @@ Al finalizar todos los pasos:
 1. @back-dev — implementación
 2. @code-reviewer — revisión
 3. @scribe — actualizar CONTEXT.md
-4. Entregar
+4. @guardian — security scan + commit
+5. Entregar
 ```
 
 ### Solo frontend
@@ -171,7 +176,8 @@ Al finalizar todos los pasos:
 2. @front-dev — implementación
 3. @code-reviewer — revisión
 4. @scribe — actualizar CONTEXT.md
-5. Entregar
+5. @guardian — security scan + commit
+6. Entregar
 ```
 
 ### Bug fix
@@ -182,7 +188,8 @@ Al finalizar todos los pasos:
 3. @back-dev o @front-dev — según dominio del bug
 4. @code-reviewer — verificar que el fix no introdujo nuevos problemas
 5. @scribe — registrar qué falló y cómo se resolvió en CONTEXT.md
-6. Entregar
+6. @guardian — security scan + commit
+7. Entregar
 ```
 
 ### Investigación / consulta técnica
@@ -191,6 +198,15 @@ Al finalizar todos los pasos:
 1. @web-search — búsqueda profunda
 2. Sintetizar resultado para el usuario
 3. Si hay implementación: continuar con pipeline correspondiente
+```
+
+### Audit de seguridad
+
+```
+1. @guardian modo audit — escaneo completo del proyecto
+2. Si hay hallazgos críticos: @back-dev o @front-dev para corregir
+3. @guardian modo commit — commitear los fixes con prefijo security:
+4. @scribe — registrar hallazgos y resoluciones en CONTEXT.md
 ```
 
 ---
@@ -310,6 +326,30 @@ Si hay CRÍTICOS o IMPORTANTES, reportar al @orchestrator para re-delegar la cor
 
 ### Algo que no funcionó
 [errores o enfoques descartados, o "nada"]
+```
+
+### Invocar @guardian
+
+```md
+## TAREA → @guardian
+
+### Modo
+[commit | audit | branch]
+
+### Contexto
+[qué se implementó / qué se quiere auditar]
+
+### Archivos modificados
+[lista de archivos, o "todos los staged"]
+
+### Rama actual
+[nombre de la rama]
+
+### Push después del commit
+[sí | no]
+
+### Mensaje sugerido (opcional)
+[tipo(scope): descripción — si ya se sabe el mensaje]
 ```
 
 ---
