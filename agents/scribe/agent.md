@@ -1,7 +1,7 @@
 ---
 description: Documentador del proyecto. Mantiene CONTEXT.md actualizado con el estado real del proyecto — decisiones, features, archivos clave y pendientes. Invocar al final de cada tarea completada. También responde consultas sobre el estado del proyecto leyendo CONTEXT.md antes de buscar en internet.
 mode: subagent
-model: opencode/deepseek-v4-flash-free
+model: ibrandprolabs/claude-sonnet-4-6
 temperature: 0.1
 color: "#10b981"
 permission:
