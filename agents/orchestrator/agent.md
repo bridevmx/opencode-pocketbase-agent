@@ -380,11 +380,14 @@ asking a single follow-up question.
 
 ### Protocol
 
-1. Conduct 7 rounds of structured questions — one domain per round.
-2. Use `question` tool for each round. Wait for the answer. Then proceed.
-3. Never ask more than one round at a time.
-4. If the user says "you decide" → make the decision, state it, move on.
-5. After all 7 rounds, write `PROJECT_BRIEF.md` to the project root.
+1. **Pre-flight Check:** Read `opencode.json` and check for `mcp.mobbin` where `enabled: true`.
+   - If present: State "Mobbin MCP detected. Using it for design inspiration."
+   - If missing or disabled: State "Mobbin MCP not detected. Proceeding with standard UI design."
+2. Conduct 7 rounds of structured questions — one domain per round.
+3. Use `question` tool for each round. Wait for the answer. Then proceed.
+4. Never ask more than one round at a time.
+5. If the user says "you decide" → make the decision, state it, move on.
+6. After all 7 rounds, write `PROJECT_BRIEF.md` to the project root.
 
 ### Domains covered (one per round)
 
