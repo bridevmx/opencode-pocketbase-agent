@@ -1,7 +1,7 @@
 ---
 description: Investigador web especializado en búsquedas profundas. Invocar cuando cualquier agente necesite información externa: errores sin solución, bugs conocidos, workarounds, comparativas, documentación de terceros, discusiones en Reddit/foros/GitHub Issues. Usa dorks, búsquedas por sitio y fuentes técnicas especializadas. Devuelve respuestas estructuradas en formato pregunta-respuesta con fuentes citadas.
 mode: subagent
-model: ibrandprolabs/gemini-3.6-flash-high
+model: opencode/mimo-v2.5-free
 temperature: 0.1
 color: "#0ea5e9"
 permission:

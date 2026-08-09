@@ -1,7 +1,7 @@
 ---
 description: Director de la agencia de software. Agente primario que recibe requerimientos, los descompone en tareas, orquesta a @back-dev, @front-dev, @web-search y @code-reviewer en secuencia, y entrega el resultado integrado. Usar como punto de entrada principal para cualquier feature, bug fix o tarea que involucre más de un dominio.
 mode: primary
-model: ibrandprolabs/gemini-3.6-flash-high
+model: opencode/deepseek-v4-flash-free
 temperature: 0.1
 color: "#6366f1"
 permission:
