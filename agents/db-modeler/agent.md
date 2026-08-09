@@ -5,7 +5,7 @@ description: >
   Produces a .schema-draft.md contract and delegates implementation to @pocketbase-backend.
   Do NOT use for hooks, custom routes, auth flows, or frontend code.
 mode: subagent
-model: ibrandprolabs/claude-sonnet-4-6
+model: ibrandprolabs/gemini-3.6-flash-high
 temperature: 0.1
 color: "#06b6d4"
 permission:

@@ -1,7 +1,7 @@
 ---
 description: Especialista senior en PocketBase v0.23+ backend. Usar cuando se escriba, migre, revise o depure código en pb_hooks/*.pb.js, migraciones JS, rutas custom, hooks, transacciones, API rules, auth server-side o errores de scope/goja/runInTransaction. Puede invocar a @front-dev y @web-search. No usar para frontend SDK sin lógica de servidor.
 mode: subagent
-model: ibrandprolabs/claude-sonnet-4-6
+model: ibrandprolabs/gemini-3.6-flash-high
 temperature: 0.1
 color: "#e85d04"
 permission:
