@@ -16,9 +16,10 @@ declare -A AGENTS=(
   ["front-dev"]="Especialista SvelteKit frontend"
   ["web-search"]="Investigador web profundo"
   ["code-reviewer"]="Auditor de calidad de codigo"
+  ["scribe"]="Documentador del proyecto — mantiene CONTEXT.md"
 )
 
-ORDER=("orchestrator" "back-dev" "front-dev" "web-search" "code-reviewer")
+ORDER=("orchestrator" "back-dev" "front-dev" "web-search" "code-reviewer" "scribe")
 
 for agent in "${ORDER[@]}"; do
   desc="${AGENTS[$agent]}"
@@ -32,4 +33,4 @@ echo ""
 echo "Agencia instalada. Reinicia OpenCode."
 echo ""
 echo "Agente primario:  @orchestrator  (punto de entrada)"
-echo "Subagentes:       @back-dev  @front-dev  @web-search  @code-reviewer"
+echo "Subagentes:       @back-dev  @front-dev  @web-search  @code-reviewer  @scribe"

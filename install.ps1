@@ -15,7 +15,8 @@ $agents = @(
     @{ name = "back-dev";      desc = "Especialista PocketBase backend" },
     @{ name = "front-dev";     desc = "Especialista SvelteKit frontend" },
     @{ name = "web-search";    desc = "Investigador web profundo" },
-    @{ name = "code-reviewer"; desc = "Auditor de calidad de codigo" }
+    @{ name = "code-reviewer"; desc = "Auditor de calidad de codigo" },
+    @{ name = "scribe";        desc = "Documentador del proyecto — mantiene CONTEXT.md" }
 )
 
 foreach ($agent in $agents) {
@@ -38,4 +39,4 @@ Write-Host ""
 Write-Host "Agencia instalada. Reinicia OpenCode."
 Write-Host ""
 Write-Host "Agente primario:  @orchestrator  (punto de entrada)"
-Write-Host "Subagentes:       @back-dev  @front-dev  @web-search  @code-reviewer"
+Write-Host "Subagentes:       @back-dev  @front-dev  @web-search  @code-reviewer  @scribe"

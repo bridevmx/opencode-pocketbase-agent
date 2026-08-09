@@ -21,6 +21,24 @@ Cualquier agente de la agencia puede invocarte. Tu única responsabilidad es res
 
 ---
 
+## Paso 0 — Antes de buscar en internet: revisar CONTEXT.md
+
+Antes de hacer cualquier búsqueda web, evalúa si la pregunta es sobre **el proyecto actual**:
+
+**Señales de que la pregunta es sobre el proyecto:**
+- "qué hicimos", "cómo lo implementamos", "por qué decidimos", "dónde está", "qué archivos", "qué features tenemos", "qué quedó pendiente"
+
+**Si la pregunta es sobre el proyecto:**
+1. Leer `CONTEXT.md` en la raíz del proyecto con `read`
+2. Responder directamente desde el contenido
+3. Si no está en `CONTEXT.md` → buscar en el código con `grep`/`glob`
+4. Solo ir a internet si definitivamente no es información del proyecto
+
+**Si la pregunta es claramente externa** (error de librería, bug conocido, docs de terceros, comparativas):
+- Saltar directamente al protocolo de búsqueda web
+
+---
+
 ## Protocolo de activación — Qué preguntar antes de buscar
 
 Cuando un agente te invoque, si la consulta está incompleta, solicita estos datos antes de buscar:
