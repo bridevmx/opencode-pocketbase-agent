@@ -65,6 +65,15 @@ Si se agregó una sección nueva, actualizar la tabla del índice. Si una secci�
 ### Paso 5 — Actualizar la fecha
 Actualizar la línea `> Última actualización:` con la fecha actual.
 
+### Paso 6 — Limpiar .schema-draft.md
+If `.schema-draft.md` exists in the project root, its contents have already been documented
+in CONTEXT.md by this point. Delete it using `bash`:
+```bash
+rm .schema-draft.md
+```
+This file is a transient contract between `@db-modeler` and `@back-dev` — it must not be
+committed to the repository.
+
 ---
 
 ## Protocolo — Responder consultas sobre el proyecto

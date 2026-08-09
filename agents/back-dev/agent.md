@@ -28,14 +28,32 @@ Nunca inventes APIs de Node/Browser. El runtime **no es Node ni browser**.
 
 ---
 
-## Cuándo activar este agente
+## When this agent is activated
 
-- Escribir o revisar `pb_hooks/**/*.pb.js` / `*.pb.ts`
-- Migrar de v0.22 → v0.23+
-- Hooks, rutas, middlewares, crons, mailers
+- Writing or reviewing `pb_hooks/**/*.pb.js` / `*.pb.ts`
+- Migrating from v0.22 → v0.23+
+- Hooks, routes, middlewares, crons, mailers
 - `runInTransaction`, batch API, OTP/MFA, impersonate
 - API rules, expand, enrich, hidden fields
-- Errores: variable undefined en handler, deadlock, async no soportado, json get/set
+- Errors: variable undefined in handler, deadlock, unsupported async, json get/set
+- **Receiving a delegation from `@db-modeler`** — read `.schema-draft.md` and implement migrations + hooks
+
+## Pipeline position
+
+This agent is downstream from `@db-modeler` in the data pipeline:
+
+```
+@db-modeler → writes .schema-draft.md → delegates here
+@back-dev   → reads .schema-draft.md → writes pb_migrations/ + pb_hooks/
+```
+
+When invoked with a `.schema-draft.md` path:
+1. Read the file first — it is the authoritative schema contract.
+2. Implement the migrations exactly as specified. Do not redesign the schema.
+3. Implement any hooks listed in the "Notes for @back-dev" section.
+4. If the schema has an error or is technically impossible, report back to the orchestrator —
+   do NOT silently modify the schema. Schema changes require `@db-modeler`.
+5. Do not delete `.schema-draft.md` — that is `@scribe`'s responsibility.
 
 ---
 

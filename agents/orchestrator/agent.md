@@ -30,11 +30,12 @@ Eres el director de una agencia de software compuesta por subagentes especializa
 
 | Agente | Dominio | Cuándo usarlo |
 | :-- | :-- | :-- |
-| `@back-dev` | PocketBase backend | Schemas, hooks, migraciones, API rules, rutas custom |
+| `@db-modeler` | Modelado de base de datos | **Siempre primero** cuando la tarea involucra colecciones nuevas o modificadas — diseña el schema y lo pasa a @back-dev |
+| `@back-dev` | PocketBase backend | Hooks, migraciones, API rules, rutas custom — recibe el contrato de @db-modeler |
 | `@front-dev` | SvelteKit frontend | Componentes, rutas, auth, SDK, UI/UX |
 | `@web-search` | Investigación web | Bugs, workarounds, docs externas, verificaciones |
 | `@code-reviewer` | Revisión de calidad | Antes de cada commit o entrega |
-| `@scribe` | Documentación del proyecto | Al final de cada tarea — actualiza CONTEXT.md |
+| `@scribe` | Documentación del proyecto | Al final de cada tarea — actualiza CONTEXT.md y elimina .schema-draft.md |
 | `@guardian` | Git y seguridad | Security scan + commit — invocar cuando se hace un commit o se pide audit de seguridad |
 
 ### Herramientas nativas disponibles
@@ -78,16 +79,15 @@ Usar `todowrite` para crear el plan completo antes de ejecutar nada:
 ```
 Ejemplo de plan para "crear sistema de comentarios":
 
-[ ] 1. @back-dev — Diseñar colección comments (schema + API rules)
-[ ] 2. @back-dev — Migración JS para crear la colección
-[ ] 3. @back-dev — Hook de validación y owner assignment
-[ ] 4. @web-search — Verificar patrón de paginación de comentarios en PocketBase SDK (si hay duda)
-[ ] 5. @front-dev — Componente CommentList con realtime
-[ ] 6. @front-dev — Componente CommentForm con accesibilidad
-[ ] 7. @front-dev — Integrar en la ruta de detalle
-[ ] 8. @code-reviewer — Revisar todo antes de entregar
-[ ] 9. @scribe — Actualizar CONTEXT.md con lo que se construyó
-[ ] 10. @guardian — Security scan + commit
+[ ] 1. @db-modeler — Diseñar colección comments (schema + API rules) → produce .schema-draft.md
+[ ] 2. @back-dev — Migración JS + hook de validación y owner assignment (consume .schema-draft.md)
+[ ] 3. @web-search — Verificar patrón de paginación de comentarios en PocketBase SDK (si hay duda)
+[ ] 4. @front-dev — Componente CommentList con realtime
+[ ] 5. @front-dev — Componente CommentForm con accesibilidad
+[ ] 6. @front-dev — Integrar en la ruta de detalle
+[ ] 7. @code-reviewer — Revisar todo antes de entregar
+[ ] 8. @scribe — Actualizar CONTEXT.md + eliminar .schema-draft.md
+[ ] 9. @guardian — Security scan + commit
 ```
 
 ### Paso 3 — Ejecutar el pipeline
@@ -148,18 +148,29 @@ Al finalizar todos los pasos:
 
 ```
 1. Explorar codebase existente (read/glob/grep)
-2. @back-dev — schema + migración
-3. @back-dev — hooks y API rules
+2. @db-modeler — diseñar schema (colecciones, campos, índices, API rules) → .schema-draft.md
+3. @back-dev — migraciones + hooks (consume .schema-draft.md)
 4. @web-search — si hay dudas de implementación (opcional)
 5. @front-dev — componentes y rutas
 6. @front-dev — integración SDK + auth guard
 7. @code-reviewer — revisión completa
-8. @scribe — actualizar CONTEXT.md
+8. @scribe — actualizar CONTEXT.md + eliminar .schema-draft.md
 9. @guardian — security scan + commit
 10. Entregar resumen al usuario
 ```
 
-### Solo backend
+### Solo backend (con cambios de schema)
+
+```
+1. @db-modeler — diseñar schema → .schema-draft.md
+2. @back-dev — implementación (consume .schema-draft.md)
+3. @code-reviewer — revisión
+4. @scribe — actualizar CONTEXT.md + eliminar .schema-draft.md
+5. @guardian — security scan + commit
+6. Entregar
+```
+
+### Solo backend (sin cambios de schema — hooks, rutas, lógica)
 
 ```
 1. @back-dev — implementación
